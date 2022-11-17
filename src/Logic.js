@@ -1,12 +1,19 @@
-import {useState} from "react";
-
+import {useEffect, useState} from "react";
 
 
 const Logic = () => {
-    const [zadania, setZadania] = useState([]); // {priorytet: number, okres: number, czasWykonania: number}
+    const [zadania, setZadania] = useState([
+        {nazwa: 'P1', okres: 5, czasWykonania: 2},
+        {nazwa: 'P2', okres: 10, czasWykonania: 2},
+        {nazwa: 'P3', okres: 20, czasWykonania: 3},
+    ]); // {nazwa: string, priorytet: number, okres: number, czasWykonania: number}
     const [hyperPeriod, setHyperPeriod] = useState(undefined);
     const [U, setU] = useState(undefined);
     const [uUtil, setUUtil] = useState(undefined);
+
+    useEffect(() => {
+        uszereguj();
+    },[]);
 
     // sprawdzenie czy dany zestaw zadan da sie zaszeregować
     const warunkiSzeregowalnosci = () => {
@@ -31,33 +38,23 @@ const Logic = () => {
         }
     }
 
+
+    const gcd = (a, b) => a ? gcd(b % a, a) : b;
+    const lcm = (a, b) => a * b / gcd(a, b);
+
     // hyperperiod
     // liczy hyperperiod dla obecnej listy zadan.
     const calcHyperPeriod = () => {
-        // Function to return gcd of a and b
-        function NWD(a, b) {
-            if (a == 0)
-                return b;
-            return gcd(b % a, a);
-        }
-
-        let wynik = zadania[0].okres;
-        for (let i = 1; i < zadania.length; i++) {
-            wynik = NWD(zadania[i].okres, wynik);
-
-            if (wynik == 1) {
-                return 1;
-            }
-        }
-
-        setHyperPeriod(wynik);
+        return zadania.map(zadanie => zadanie.okres).reduce(lcm);
     }
 
-    const estimatePriority = () => {
-        let tempPeriod = hyperPeriod
+    // zwraca index zadania ktore ma priorytet w obecej jednosce czasu
+    const estimatePriority = (zadaniaCzasuRzeczywistego) => {
+        // hyperperiod tu powinnen byc ze zmiennej wyciagany ale react sie nie slucha.
+        let tempPeriod = calcHyperPeriod()
         let p = -1
 
-        zadania.forEach(({ okres, czasWykonania }, i) => {
+        zadaniaCzasuRzeczywistego.forEach(({ okres, czasWykonania }, i) => {
             if (czasWykonania !== 0) {
                 if (tempPeriod > okres) {
                     tempPeriod = okres
@@ -68,6 +65,39 @@ const Logic = () => {
 
         return p
     }
+
+    const uszereguj = () => {
+        let zadaniaCzasuRzeczywistego = JSON.parse(JSON.stringify(zadania));
+        const timeline = []; // {jednostkaCzasu: number, nazwaZadania: string}
+        [...Array(calcHyperPeriod()).keys()].forEach(t => {
+
+            const indexZadania = estimatePriority(zadaniaCzasuRzeczywistego);
+
+            if (indexZadania !== -1) {
+                // wykonuje sie task
+                console.log(`t${t} -->t${t+1}: TASK ${zadania[indexZadania].nazwa}`);
+                timeline.push({jednostkaCzasu: t, nazwaZadania: zadania[indexZadania].nazwa})
+                zadaniaCzasuRzeczywistego[indexZadania].czasWykonania -= 1
+            } else {
+                // nic sie nie dzieje
+                timeline.push({jednostkaCzasu: t, nazwaZadania: 'IDLE'})
+                console.log(`t${t} -->t${t+1}: IDLE`);
+            }
+
+            // Update Period after each clock cycle
+            zadaniaCzasuRzeczywistego = zadaniaCzasuRzeczywistego.map(zadanieCzasuRzeczywistego => {
+                zadanieCzasuRzeczywistego.okres -= 1;
+                if (zadanieCzasuRzeczywistego.okres === 0) {
+                    let index = zadania.findIndex(it => zadanieCzasuRzeczywistego.nazwa === it.nazwa);
+                    zadanieCzasuRzeczywistego = JSON.parse(JSON.stringify(zadania[index]));
+                }
+                return zadanieCzasuRzeczywistego;
+            })
+        })
+        console.log(timeline);
+    }
+
+    return (<div>haha</div>)
 }
 
 export default Logic;
