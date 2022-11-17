@@ -52,6 +52,22 @@ const Logic = () => {
 
         setHyperPeriod(wynik);
     }
+
+    const estimatePriority = () => {
+        let tempPeriod = hyperPeriod
+        let p = -1
+
+        zadania.forEach(({ okres, czasWykonania }, i) => {
+            if (czasWykonania !== 0) {
+                if (tempPeriod > okres) {
+                    tempPeriod = okres
+                    p = i
+                }
+            }
+        })
+
+        return p
+    }
 }
 
 export default Logic;
