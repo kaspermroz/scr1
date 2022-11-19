@@ -26,6 +26,7 @@ const mapRows = (rows) =>
 
 export const Layout = () => {
   const [rows, setRows] = useState([]);
+  const [timeline, setTimeline] = useState([]);
 
   console.log(rows);
 
@@ -58,8 +59,7 @@ export const Layout = () => {
   };
 
   const handleStart = () => {
-    const timeline = uszereguj(mapRows(rows));
-    console.log(timeline);
+    setTimeline(uszereguj(mapRows(rows)));
   };
 
   return (
@@ -96,7 +96,7 @@ export const Layout = () => {
                         }}
                       >
                         <EditablePreview />
-                        <EditableInput maxW="50px" />
+                        <EditableInput maxW="50px" type="number" />
                       </Editable>
                     </Td>
                     <Td isNumeric>
@@ -107,7 +107,7 @@ export const Layout = () => {
                         }}
                       >
                         <EditablePreview />
-                        <EditableInput maxW="50px" />
+                        <EditableInput maxW="50px" type="number" />
                       </Editable>
                     </Td>
                     <Td>
@@ -136,6 +136,28 @@ export const Layout = () => {
       </Flex>
       <Flex>
         <p>U = {U.toPrecision(5)}</p>
+      </Flex>
+      <Flex>
+        <Box>
+          {timeline.length > 0 ? (
+            <TableContainer>
+              <Table variant="simple">
+                <Tbody>
+                  <Tr>
+                    {timeline.map(({ jednostkaCzasu, nazwaZadania }) => (
+                      <Td>
+                        <p>
+                          <b>{jednostkaCzasu}</b>
+                        </p>
+                        <p>{nazwaZadania}</p>
+                      </Td>
+                    ))}
+                  </Tr>
+                </Tbody>
+              </Table>
+            </TableContainer>
+          ) : null}
+        </Box>
       </Flex>
     </Box>
   );
