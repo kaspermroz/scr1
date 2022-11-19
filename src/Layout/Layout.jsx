@@ -15,11 +15,21 @@ import {
   EditablePreview,
   EditableInput,
 } from "@chakra-ui/react";
+import { uszereguj, warunkiSzeregowalnosci } from "../Logic";
+
+const mapRows = (rows) =>
+  rows.map(({ name, time, period }) => ({
+    nazwa: name,
+    okres: period,
+    czasWykonania: time,
+  }));
 
 export const Layout = () => {
   const [rows, setRows] = useState([]);
 
   console.log(rows);
+
+  const { U, czy_jest_szeregowalny } = warunkiSzeregowalnosci(mapRows(rows));
 
   const handleAddRow = () => {
     setRows([
@@ -48,7 +58,8 @@ export const Layout = () => {
   };
 
   const handleStart = () => {
-    console.log("start");
+    const timeline = uszereguj(mapRows(rows));
+    console.log(timeline);
   };
 
   return (
@@ -92,7 +103,7 @@ export const Layout = () => {
                       <Editable
                         defaultValue={period}
                         onSubmit={(value) => {
-                          handleEditRow("time", name, value);
+                          handleEditRow("period", name, value);
                         }}
                       >
                         <EditablePreview />
@@ -113,10 +124,18 @@ export const Layout = () => {
           </TableContainer>
         </Box>
         <Box>
-          <Button colorScheme="teal" ml={4} onClick={handleStart}>
+          <Button
+            colorScheme="teal"
+            ml={4}
+            onClick={handleStart}
+            disabled={!czy_jest_szeregowalny}
+          >
             Start
           </Button>
         </Box>
+      </Flex>
+      <Flex>
+        <p>U = {U.toPrecision(5)}</p>
       </Flex>
     </Box>
   );
